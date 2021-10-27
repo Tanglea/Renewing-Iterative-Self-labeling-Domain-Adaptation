@@ -1,0 +1,67 @@
+#Add dynamic term
+DynamicTerm = matrix(0,62,30)
+for (i in 1:30){
+  for (j in 1:61){
+#i+1 means the first column is the BMI. j+1 means the dynamic term for the first frams is 0
+    DynamicTerm[j+1,i] = sub_18[j+1,i] - sub_18[j,i] 
+  }
+}
+
+#Normalization using max-min
+for(i in 1:63){
+  if(MaxMinPrin[1,i] == MaxMinPrin[2,i]){
+    next
+  }
+  for(j in 1:length(sub_18_dy[,i]))
+    sub_18_dy[j,i] = (sub_18_dy[j,i] - MaxMinPrin[2,i]) / (MaxMinPrin[1,i]-MaxMinPrin[2,i])
+}
+
+#PCA
+Train = rbind(sub_31_dy, sub_24_dy[1,])
+Test = sub_24_dy[-1,]
+
+NewTestInputPCA = Test[,1:62] %*% PCA_Weight 
+
+NewDesignPCA = Train[,1:62] %*% PCA_Weight
+
+Design = Train[,1:62] %*% PCA_Weight
+
+TestInput = NewTestInputPCA[1:2,]	
+
+Response = Train[,63]
+
+OriginalRes = Train[,63]
+
+Y_true = Test[,63]
+
+#Re-ISDA
+for (i in 1:43){
+  
+  net = newff(n.neurons=c(10,16,16,8,1), learning.rate.global=0.1, momentum.global=0.5,error.criterium="LMS",method="ADAPTgdwm",output.layer="purelin",hidden.layer="sigmoid")
+  
+  
+  result = train(net,Design,Response, error.criterium="LMS", report=TRUE, show.step=1500, n.shows=5)
+  
+  Y_pred_nn = sim(result$net, TestInput)
+  
+  
+  
+  
+  #	dice_model_2 = km(design = data.frame(Design),response = data.frame(Response),nugget = 0.001)
+  
+  #	Y_pred_dice_2 = predict(dice_model_2,newdata=data.frame(TestInput),type="UK")
+  
+  err = (Y_pred_nn - Y_true[1:length(Y_pred_nn)])
+  MSE = sqrt(sum(err^2)/length(Y_pred_nn))
+  
+  print(MSE)
+  
+  
+  Design = rbind(NewDesignPCA,TestInput)
+  Response = rbind(as.matrix(OriginalRes),as.matrix(Y_pred_nn))
+#  TestInput = rbind(TestInput,NewTestInputPCA[(5*(i-1)+5):(5*i+4),])
+  TestInput = rbind(TestInput,NewTestInputPCA[(2*(i-1)+3):(2*i+2),])
+  print(i)
+  
+  
+}
