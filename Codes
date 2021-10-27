@@ -47,9 +47,6 @@ for (i in 1:43){
   
   
   
-  #	dice_model_2 = km(design = data.frame(Design),response = data.frame(Response),nugget = 0.001)
-  
-  #	Y_pred_dice_2 = predict(dice_model_2,newdata=data.frame(TestInput),type="UK")
   
   err = (Y_pred_nn - Y_true[1:length(Y_pred_nn)])
   MSE = sqrt(sum(err^2)/length(Y_pred_nn))
@@ -59,7 +56,6 @@ for (i in 1:43){
   
   Design = rbind(NewDesignPCA,TestInput)
   Response = rbind(as.matrix(OriginalRes),as.matrix(Y_pred_nn))
-#  TestInput = rbind(TestInput,NewTestInputPCA[(5*(i-1)+5):(5*i+4),])
   TestInput = rbind(TestInput,NewTestInputPCA[(2*(i-1)+3):(2*i+2),])
   print(i)
   
